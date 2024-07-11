@@ -25,4 +25,8 @@
     <ProjectReference Include="..\Job.Services.Quartz\Job.Services.Quartz.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
 </Project>
