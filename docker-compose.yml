@@ -1,0 +1,157 @@
+version: '3.9'
+
+networks:
+  jobfinder_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+
+services:
+  sql-server-user:
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      SA_PASSWORD: ComplexPassword123!
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    ports:
+      - "1434:1433"
+    networks:
+      - jobfinder_network
+    volumes:
+      - my-user-db:/var/opt/mssql
+      - ./backups/user:/var/opt/mssql/backups
+
+  sql-server-job:
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      SA_PASSWORD: ComplexPassword123!
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    ports:
+      - "1435:1433"
+    networks:
+      - jobfinder_network
+    volumes:
+      - my-job-db:/var/opt/mssql
+      - ./backups/job:/var/opt/mssql/backups
+
+  sql-server-location:
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      SA_PASSWORD: ComplexPassword123!
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    ports:
+      - "1436:1433"
+    networks:
+      - jobfinder_network
+    volumes:
+      - my-location-db:/var/opt/mssql
+      - ./backups/location:/var/opt/mssql/backups
+          
+  user-queue:
+    image: "rabbitmq:3-management"
+    hostname: "userQueue"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "userPassword"
+    networks:
+      - jobfinder_network
+  
+  job-queue:
+    image: "rabbitmq:3-management"
+    hostname: "jobQueue"
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "job"
+      RABBITMQ_DEFAULT_PASS: "jobPassword"
+    networks:
+      - jobfinder_network
+
+  user-microservice:
+    image: user-microservice-image
+    build: 
+      context: ./User.Microservice
+      dockerfile: Dockerfile
+    ports:
+      - "5278:80"
+    environment:
+      DefaultConnection: "Server=sql-server-user,1433;Database=JobFinder.User;User Id=SA;Password=ComplexPassword123!;TrustServerCertificate=True"
+      USER_QUEUE_HOSTNAME: "user-queue"
+      JOB_QUEUE_HOSTNAME: "job-queue"
+      JOB_QUEUE_PORT: "5672"
+      LOCATION_MICROSERVICE_URL: "http://location-microservice"
+      RUNNING_IN_DOCKER: "true"
+    networks:
+      - jobfinder_network
+    depends_on:
+      - sql-server-user
+      - user-queue
+    volumes:
+      - user-cvs:/app/Resources/CV
+
+  job-microservice:
+    image: job-microservice-image
+    build: 
+      context: ./Job.Microservice
+      dockerfile: Dockerfile
+    ports:
+      - "5130:80"
+    environment:
+      DefaultConnection: "Server=sql-server-job,1433;Database=JobFinder.Job;User Id=SA;Password=ComplexPassword123!;TrustServerCertificate=True"
+      USER_QUEUE_HOSTNAME: "user-queue"
+      JOB_QUEUE_HOSTNAME: "job-queue"
+      JOB_QUEUE_PORT: "5672"
+      LOCATION_MICROSERVICE_URL: "http://location-microservice"
+      RUNNING_IN_DOCKER: "true"
+    networks:
+      - jobfinder_network
+    depends_on:
+      - sql-server-job
+      - job-queue
+    volumes:
+      - company-logos:/app/Resources/CompanyLogos
+
+  location-microservice:
+    image: location-microservice-image
+    build: 
+      context: ./Location.Microservice
+      dockerfile: Dockerfile
+    ports:
+      - "5204:80"
+    environment:
+      DefaultConnection: "Server=sql-server-location,1433;Database=JobFinder.Location;User Id=SA;Password=ComplexPassword123!;TrustServerCertificate=True"
+      USER_MICROSERVICE_URL: "http://user-microservice"
+      JOB_MICROSERVICE_URL: "http://job-microservice"
+    networks:
+      - jobfinder_network
+    depends_on:
+      - sql-server-location
+
+  jobfinder-frontend:
+    image: jobfinder-frontend-image
+    build:
+      context: ./Front-End
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    networks:
+      - jobfinder_network
+    depends_on:
+      - user-microservice
+      - job-microservice
+      - location-microservice
+
+volumes:
+  my-user-db:
+  my-job-db:
+  my-location-db:
+  user-cvs:
+  company-logos:
