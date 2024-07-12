@@ -21,7 +21,7 @@ services:
       - jobfinder_network
     volumes:
       - my-user-db:/var/opt/mssql
-      - ./backups/user:/var/opt/mssql/backups
+      # - ./backups/user:/var/opt/mssql/backups
 
   sql-server-job:
     image: mcr.microsoft.com/mssql/server
@@ -35,7 +35,7 @@ services:
       - jobfinder_network
     volumes:
       - my-job-db:/var/opt/mssql
-      - ./backups/job:/var/opt/mssql/backups
+      # - ./backups/job:/var/opt/mssql/backups
 
   sql-server-location:
     image: mcr.microsoft.com/mssql/server
@@ -49,7 +49,7 @@ services:
       - jobfinder_network
     volumes:
       - my-location-db:/var/opt/mssql
-      - ./backups/location:/var/opt/mssql/backups
+      # - ./backups/location:/var/opt/mssql/backups
           
   user-queue:
     image: "rabbitmq:3-management"
