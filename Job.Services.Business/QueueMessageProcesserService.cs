@@ -47,7 +47,7 @@ public class QueueMessageProcesserService : IQueueMessageProcesserService
 
         if (userRecommendations is not null && userRecommendations.Any())
         {
-            var numberOfRecommendationsToday = userRecommendations.Count(x => x.CreatedDate.Date == DateTime.UtcNow.Date);
+            var numberOfRecommendationsToday = userRecommendations.Count(x => x.CreatedDate.Date == DateTime.Now.Date);
             if (numberOfRecommendationsToday >= 3)
             {
                 return;
@@ -88,7 +88,7 @@ public class QueueMessageProcesserService : IQueueMessageProcesserService
 
         var jobs = new List<JobDto>();
         var existingJobIds = new List<Guid>();
-        var numberOfJobs = 150;
+        var numberOfJobs = 250;
         var numberOfRecommendations = 1;
         for (var number = 0; number < numberOfRecommendations; number++)
         {
@@ -116,7 +116,7 @@ public class QueueMessageProcesserService : IQueueMessageProcesserService
         var newJobRecommendation = new RecommendationEntity
         {
             UserProfileId = userDetails.UserProfileId,
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = DateTime.Now
         };
 
         await _recommendationRepository.AddRecommendationAsync(newJobRecommendation);

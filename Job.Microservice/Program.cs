@@ -11,6 +11,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = Environment.GetEnvironmentVariable("RUNNING_IN_DOCKER") is not null ? 443 : 5130;
+    options.Listen(System.Net.IPAddress.Any, port, listenOptions =>
+    {
+        var certificatePath = Environment.GetEnvironmentVariable("CERTIFICATE_PATH") ?? builder.Configuration["Certificate:Path"];
+        var certificatePassword = builder.Configuration["Certificate:Password"];
+        listenOptions.UseHttps(certificatePath, certificatePassword);
+    });
+});
+
 var connectionString = Environment.GetEnvironmentVariable("DefaultConnection") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<DataContext>(options => {
     options.UseSqlServer(connectionString);
@@ -61,6 +72,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
 
 string resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
 if (!Directory.Exists(resourcesPath))

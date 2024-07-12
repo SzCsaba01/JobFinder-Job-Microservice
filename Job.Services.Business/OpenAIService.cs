@@ -27,8 +27,8 @@ public class OpenAIService : IOpenAIService
             var requestBody = new
             {
                 //gpt-4o
-                //"gpt-3.5-turbo-0125"
-                model = "gpt-3.5-turbo-0125",
+                //gpt-3.5-turbo-0125
+                model = "gpt-4o",
                 messages = new[]
                 {
                     new { role = "system", content = "You are a helpful assistant." },
@@ -117,7 +117,6 @@ public class OpenAIService : IOpenAIService
 
         prompt.AppendLine("Please provide job recommendations and return only the top 5 recommended job ids for the user exactly in the following format:");
         prompt.AppendLine("[Recommended Job Ids: id1, id2, id3, ...]");
-        //prompt.AppendLine("Example: [Recommended Job Ids: 123, 456, 789]");
 
         return prompt.ToString();
     }

@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /app 
-EXPOSE 80
+EXPOSE 443
 
 COPY *.sln .
 COPY Job.Microservice/*.csproj ./Job.Microservice/
@@ -21,6 +21,8 @@ COPY Job.Data.Access/. ./Job.Data.Access/
 COPY Job.Data.Contracts/. ./Job.Data.Contracts/
 COPY Job.Data.Object/. ./Job.Data.Object/
 
+COPY localhost.pfx /certificate/
+
 WORKDIR /app/Job.Microservice
 RUN dotnet build ./Job.Microservice.csproj -c Release -o /app/build
 
@@ -29,7 +31,10 @@ WORKDIR /app/Job.Microservice
 RUN dotnet publish ./Job.Microservice.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
+
 WORKDIR /app 
+
+COPY --from=publish /certificate/localhost.pfx /app/certificate/
 COPY --from=publish /app/publish .
 
 ENTRYPOINT ["dotnet", "Job.Microservice.dll"]

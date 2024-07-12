@@ -1,9 +1,9 @@
 ﻿namespace Job.Data.Contracts.Helpers;
 public static class AppConstants
 {
-    public const string FE_APP_FEEDBACK_URL = "http://localhost:4200/home/feedback";
+    public const string FE_APP_FEEDBACK_URL = "https://localhost:4200/home/feedback";
     public const string OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-    public const string APPLICATION_URL = "http://localhost:5130";
+    public const string MICROSERVICE_URL = "https://localhost:5130";
     public const string USER_DELETE_MESSAGE = "DeleteUser";
     public const string RECOMMEND_JOBS_MESSAGE = "RecommendJobs";
     public static string REGION_API_URL = "api/Region/";

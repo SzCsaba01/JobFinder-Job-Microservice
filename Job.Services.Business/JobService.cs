@@ -5,7 +5,7 @@ using Job.Data.Contracts.Helpers.DTO.Job;
 using Job.Data.Object.Entities;
 using Job.Services.Contracts;
 using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 
 namespace Job.Services.Business;
@@ -20,7 +20,7 @@ public class JobService : IJobService
     private readonly ILocationRepository _locationRepository;
     private readonly ILocationCommunicationService _locationCommunicationService;
     private readonly IMapper _mapper;
-    private readonly IServer _server;
+    private readonly IConfiguration _configuration;
 
     public JobService
         (
@@ -33,7 +33,7 @@ public class JobService : IJobService
             ILocationRepository locationRepository,
             ILocationCommunicationService locationCommunicationService,
             IMapper mapper,
-            IServer server
+            IConfiguration configuration
         )
     {
         _categoryRepository = categoryRepository;
@@ -45,7 +45,7 @@ public class JobService : IJobService
         _locationRepository = locationRepository;
         _locationCommunicationService = locationCommunicationService;
         _mapper = mapper;
-        _server = server;
+        _configuration = configuration;
     }
 
     public async Task<JobFilterResultDto> GetFilteredJobsPaginatedAsync(JobFilterDto jobFilterDto)
@@ -81,7 +81,7 @@ public class JobService : IJobService
 
         if (job.Locations is not null && job.Locations.Count > 10)
         {
-            throw new ValidationException("Locations count should be less than 10");
+            throw new ValidationException("Locations count should be less than 5");
         }
 
         var companyToBeAdded = new CompanyEntity();
@@ -109,7 +109,7 @@ public class JobService : IJobService
                 {
                     pathToSave = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, AppConstants.MICROSERVICE_NAME, folderName);
                     fullPath = Path.Combine(pathToSave, fileName);
-                    var serverAddress = _server.Features.Get<IServerAddressesFeature>().Addresses.First();
+                    var serverAddress = AppConstants.MICROSERVICE_URL;
                     var dbPath = Path.Combine(serverAddress, folderName, fileName);
                     companyToBeAdded.Logo = dbPath;
                 }
@@ -117,7 +117,7 @@ public class JobService : IJobService
                 {
                     pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
                     fullPath = Path.Combine(pathToSave, fileName);
-                    var dbPath = Path.Combine(AppConstants.APPLICATION_URL, folderName, fileName);
+                    var dbPath = Path.Combine(AppConstants.MICROSERVICE_URL, folderName, fileName);
                     companyToBeAdded.Logo = dbPath;
                 }
 
@@ -214,7 +214,7 @@ public class JobService : IJobService
 
         foreach (var job in jobs) {
             job.isActive = false;
-            job.DateClosed = DateTime.UtcNow;
+            job.DateClosed = DateTime.Now;
         }
 
         await _jobRepository.UpdateJobsAsync(jobs);

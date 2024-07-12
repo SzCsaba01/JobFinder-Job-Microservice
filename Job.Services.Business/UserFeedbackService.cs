@@ -98,7 +98,7 @@ public class UserFeedbackService : IUserFeedbackService
 
         userFeedback.CompanyRating = feedback.CompanyRating;
         userFeedback.Feedback = feedback.Feedback;
-        userFeedback.FeedbackDate = DateTime.UtcNow;
+        userFeedback.FeedbackDate = DateTime.Now;
         userFeedback.ApplicationStatus = feedback.ApplicationStatus;
         userFeedback.Job = null;
 

@@ -58,9 +58,9 @@ public class JobRepository : IJobRepository
     {
         return await _dataContext.Jobs
             .Where(x => x.isActive)
+            .OrderByDescending(x => x.DatePosted)
             .Skip(page * pageSize)
             .Take(pageSize)
-            .OrderByDescending(x => x.DatePosted)
             .Include(x => x.Categories)
             .Include(x => x.ContractType)
             .Include(x => x.Tags)
@@ -74,6 +74,7 @@ public class JobRepository : IJobRepository
     {
         return await _dataContext.Jobs
             .Where(x => x.isActive)
+            .OrderByDescending(x => x.DatePosted)
             .Skip(page * pageSize)
             .Take(pageSize)
             .Select(x => new JobEntity
@@ -90,7 +91,6 @@ public class JobRepository : IJobRepository
                 Title = x.Title,
                 Url = x.Url
             })
-            .OrderBy(x => x.DatePosted)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -262,7 +262,7 @@ public class JobRepository : IJobRepository
 
     public async Task<List<JobEntity>> GetAllJobsForDeactivation()
     {
-        var date = DateTime.UtcNow.AddDays(-60);
+        var date = DateTime.Now.AddDays(-60);
 
         return await _dataContext.Jobs
             .Where(x => x.isActive && x.DatePosted < date)

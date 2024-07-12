@@ -81,13 +81,14 @@ services:
       context: ./User.Microservice
       dockerfile: Dockerfile
     ports:
-      - "5278:80"
+      - "5278:443"
     environment:
       DefaultConnection: "Server=sql-server-user,1433;Database=JobFinder.User;User Id=SA;Password=ComplexPassword123!;TrustServerCertificate=True"
       USER_QUEUE_HOSTNAME: "user-queue"
       JOB_QUEUE_HOSTNAME: "job-queue"
       JOB_QUEUE_PORT: "5672"
-      LOCATION_MICROSERVICE_URL: "http://location-microservice"
+      CERTIFICATE_PATH: "/app/certificate/localhost.pfx"
+      LOCATION_MICROSERVICE_URL: "https://location-microservice"
       RUNNING_IN_DOCKER: "true"
     networks:
       - jobfinder_network
@@ -103,13 +104,14 @@ services:
       context: ./Job.Microservice
       dockerfile: Dockerfile
     ports:
-      - "5130:80"
+      - "5130:443"
     environment:
       DefaultConnection: "Server=sql-server-job,1433;Database=JobFinder.Job;User Id=SA;Password=ComplexPassword123!;TrustServerCertificate=True"
       USER_QUEUE_HOSTNAME: "user-queue"
       JOB_QUEUE_HOSTNAME: "job-queue"
       JOB_QUEUE_PORT: "5672"
-      LOCATION_MICROSERVICE_URL: "http://location-microservice"
+      CERTIFICATE_PATH: "/app/certificate/localhost.pfx"
+      LOCATION_MICROSERVICE_URL: "https://location-microservice"
       RUNNING_IN_DOCKER: "true"
     networks:
       - jobfinder_network
@@ -125,11 +127,13 @@ services:
       context: ./Location.Microservice
       dockerfile: Dockerfile
     ports:
-      - "5204:80"
+      - "5204:443"
     environment:
       DefaultConnection: "Server=sql-server-location,1433;Database=JobFinder.Location;User Id=SA;Password=ComplexPassword123!;TrustServerCertificate=True"
-      USER_MICROSERVICE_URL: "http://user-microservice"
-      JOB_MICROSERVICE_URL: "http://job-microservice"
+      USER_MICROSERVICE_URL: "https://user-microservice"
+      JOB_MICROSERVICE_URL: "https://job-microservice"
+      CERTIFICATE_PATH: "/app/certificate/localhost.pfx"
+      RUNNING_IN_DOCKER: "true"
     networks:
       - jobfinder_network
     depends_on:
@@ -141,7 +145,7 @@ services:
       context: ./Front-End
       dockerfile: Dockerfile
     ports:
-      - "4200:80"
+      - "4200:443"
     networks:
       - jobfinder_network
     depends_on:

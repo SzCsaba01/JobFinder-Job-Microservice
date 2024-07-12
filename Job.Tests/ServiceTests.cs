@@ -8,8 +8,13 @@ using Job.Data.Object.Entities;
 using Job.Services.Business;
 using Job.Services.Contracts;
 using Location.Data.Access.Helpers.DTO.City;
+using Location.Data.Access.Helpers.DTO.CountryStateCity;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.Extensions.Configuration;
 using Moq;
+using Moq.Protected;
+using System.Net;
+using System.Text.Json;
 using Xunit;
 
 public class ServiceTests
@@ -28,7 +33,7 @@ public class ServiceTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<ILocationCommunicationService> _mockLocationCommunicationService;
     private readonly Mock<IJobAPIService> _mockJobAPIService;
-    private readonly Mock<IServer> _mockServer;
+    private readonly Mock<IConfiguration> _mockConfiguration;
 
     private readonly CategoryService _categoryService;
     private readonly CompanyService _companyService;
@@ -56,7 +61,7 @@ public class ServiceTests
         _mockMapper = new Mock<IMapper>();
         _mockLocationCommunicationService = new Mock<ILocationCommunicationService>();
         _mockJobAPIService = new Mock<IJobAPIService>();
-        _mockServer = new Mock<IServer>();
+        _mockConfiguration = new Mock<IConfiguration>();
 
         _categoryService = new CategoryService(_mockCategoryRepository.Object);
 
@@ -93,7 +98,7 @@ public class ServiceTests
             _mockLocationRepository.Object,
             _mockLocationCommunicationService.Object,
             _mockMapper.Object,
-            _mockServer.Object
+            _mockConfiguration.Object
         );
     }
 
@@ -298,7 +303,7 @@ public class ServiceTests
             Locations = new List<LocationDto> { new LocationDto { City = "City1", Country = "Country1", Region = "Region"} },
             Title = "TestJob",
             Description = "TestDescription",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             Url = "TestUrl"
         };
         var jobEntity = new JobEntity { 
@@ -309,7 +314,7 @@ public class ServiceTests
             Tags = new List<JobTagMapping> { new JobTagMapping { TagName = "Tag1" }, new JobTagMapping { TagName = "Tag2" } },
             Locations = new List<LocationEntity> { new LocationEntity { City = "City1", Country = "Country1", Region = "Region" } },
             Description = "TestDescription",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             Url = "TestUrl"
         };
         _mockMapper.Setup(m => m.Map<JobEntity>(jobDto)).Returns(jobEntity);
@@ -368,7 +373,7 @@ public class ServiceTests
     public async Task JobRecommendationService_PollRecommendedJobsAfterDateAsync_ReturnsRecommendedJobs()
     {
         var userProfileId = Guid.NewGuid();
-        var date = DateTime.UtcNow.AddDays(-1);
+        var date = DateTime.Now.AddDays(-1);
         var jobs = new List<JobEntity> { new JobEntity { Title = "TestJob" } };
         var jobDtos = new List<JobDto> { new JobDto { Title = "TestJob" } };
         var recommendation = new RecommendationEntity
@@ -438,6 +443,94 @@ public class ServiceTests
         await _savedJobService.DeleteSavedJobAsync(userProfileId, jobId);
 
         _mockSavedJobRepository.Verify(repo => repo.DeleteSavedJobAsync(savedJob), Times.Once);
+    }
+
+    //LocationCommunicationService Tests
+    [Fact]
+    public async Task LocationCommunicationService_GetCitiesByCityAndCountryNames_ReturnsLocationDtos()
+    {
+        var httpMessageHandler = new Mock<HttpMessageHandler>();
+        var httpClient = new HttpClient(httpMessageHandler.Object)
+        {
+            BaseAddress = new Uri("http://test.com/")
+        };
+
+        var service = new LocationCommunicationService(httpClient);
+        var countryStateCityRegions = new List<CountryStateCityRegionDto> { new CountryStateCityRegionDto() };
+
+        httpMessageHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(new List<LocationDto>()))
+            });
+
+        var result = await service.GetCitiesByCityAndCountryNames(countryStateCityRegions);
+
+        Assert.NotNull(result);
+        Assert.IsType<List<LocationDto>>(result);
+    }
+
+    [Fact]
+    public async Task LocationCommunicationService_GetCountriesByNamesAsync_ReturnsLocationDtos()
+    {
+        var httpMessageHandler = new Mock<HttpMessageHandler>();
+        var httpClient = new HttpClient(httpMessageHandler.Object)
+        {
+            BaseAddress = new Uri("http://test.com/")
+        };
+
+        var service = new LocationCommunicationService(httpClient);
+        var countryNames = new List<string> { "Country1" };
+
+        httpMessageHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(new List<LocationDto>()))
+            });
+
+        var result = await service.GetCountriesByNamesAsync(countryNames);
+
+        Assert.NotNull(result);
+        Assert.IsType<List<LocationDto>>(result);
+    }
+
+    [Fact]
+    public async Task LocationCommunicationService_GetStatesByNamesAsync_ReturnsLocationDtos()
+    {
+        var httpMessageHandler = new Mock<HttpMessageHandler>();
+        var httpClient = new HttpClient(httpMessageHandler.Object)
+        {
+            BaseAddress = new Uri("http://test.com/")
+        };
+
+        var service = new LocationCommunicationService(httpClient);
+        var stateNames = new List<string> { "State1" };
+
+        httpMessageHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(new List<LocationDto>()))
+            });
+
+        var result = await service.GetStatesByNamesAsync(stateNames);
+
+        Assert.NotNull(result);
+        Assert.IsType<List<LocationDto>>(result);
     }
 
     // TagService Tests

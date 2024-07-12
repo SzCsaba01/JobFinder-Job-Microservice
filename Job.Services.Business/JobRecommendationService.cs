@@ -39,7 +39,7 @@ public class JobRecommendationService : IJobRecommendationService
 
     public async Task<List<JobDto>> PollRecommendedJobsAfterDateAsync(Guid userProfileId, DateTime date)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = DateTime.Now;
         var jobs = new List<JobEntity>();
 
         for (int attempts = 0; attempts < 15; attempts++)

@@ -40,7 +40,7 @@ public class SavedJobService : ISavedJobService
         var savedJob = new SavedJobEntity
         {
             UserProfileId = userProfileId,
-            SavedDate = DateTime.UtcNow,
+            SavedDate = DateTime.Now,
             JobId = jobId
         };
 

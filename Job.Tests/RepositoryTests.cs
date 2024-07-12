@@ -8,19 +8,20 @@ using Xunit;
 
 public class RepositoryTests
 {
-    private DataContext GetInMemoryDataContext()
+    private readonly DbContextOptions<DataContext> _contextOptions;
+
+    public RepositoryTests()
     {
-        var options = new DbContextOptionsBuilder<DataContext>()
+        _contextOptions = new DbContextOptionsBuilder<DataContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new DataContext(options);
     }
 
     // CategoryRepository Tests
     [Fact]
     public async Task CategoryRepository_GetCategoriesByNamesAsync_ReturnsCategories()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Categories.Add(new CategoryEntity { Name = "TestCategory" });
         await context.SaveChangesAsync();
 
@@ -34,7 +35,7 @@ public class RepositoryTests
     [Fact]
     public async Task CategoryRepository_GetMostVisitedCategoriesInLast30DaysAsync_ReturnsCategories()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var category = new CategoryEntity { Name = "TestCategory" };
         var job = new JobEntity
         {
@@ -42,14 +43,14 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = category } }
         };
         context.ExternalSourceVisitClicks.Add(new ExternalSourceVisitClickEntity
         {
             UserProfileId = Guid.NewGuid(),
             Job = job,
-            ClickDate = DateTime.UtcNow
+            ClickDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -63,7 +64,7 @@ public class RepositoryTests
     [Fact]
     public async Task CategoryRepository_GetSavedCategoriesInLast30DaysAsync_ReturnsCategories()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var category = new CategoryEntity { Name = "TestCategory" };
         var job = new JobEntity
         {
@@ -71,14 +72,14 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = category } }
         };
         context.SavedJobs.Add(new SavedJobEntity
         {
             UserProfileId = Guid.NewGuid(),
             Job = job,
-            SavedDate = DateTime.UtcNow
+            SavedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -92,7 +93,7 @@ public class RepositoryTests
     [Fact]
     public async Task CategoryRepository_GetAllCategoriesAsync_ReturnsAllCategories()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Categories.Add(new CategoryEntity { Name = "Category1" });
         context.Categories.Add(new CategoryEntity { Name = "Category2" });
         await context.SaveChangesAsync();
@@ -106,7 +107,7 @@ public class RepositoryTests
     [Fact]
     public async Task CategoryRepository_AddCategoriesAsync_AddsCategories()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var categories = new List<CategoryEntity>
         {
             new CategoryEntity { Name = "Category1" },
@@ -123,7 +124,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_GetCompanyByNameAsync_ReturnsCompany()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Companies.Add(new CompanyEntity { Name = "TestCompany" });
         await context.SaveChangesAsync();
 
@@ -137,7 +138,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_GetMostVisitedCompaniesInLast30DaysAsync_ReturnsCompanies()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var company = new CompanyEntity { Name = "TestCompany" };
         context.ExternalSourceVisitClicks.Add(new ExternalSourceVisitClickEntity
         {
@@ -148,10 +149,10 @@ public class RepositoryTests
                 Title = "TestJob",
                 Description = "TestDescription",
                 CompanyName = "TestCompany",
-                DatePosted = DateTime.UtcNow,
+                DatePosted = DateTime.Now,
                 Company = company
             },
-            ClickDate = DateTime.UtcNow
+            ClickDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -165,7 +166,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_GetMostSavedCompaniesInLast30DaysAsync_ReturnsCompanies()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var company = new CompanyEntity { Name = "SavedCompany" };
         context.SavedJobs.Add(new SavedJobEntity
         {
@@ -175,10 +176,10 @@ public class RepositoryTests
                 Title = "TestJob",
                 Description = "TestDescription",
                 CompanyName = "SavedCompany",
-                DatePosted = DateTime.UtcNow,
+                DatePosted = DateTime.Now,
                 Company = company
             },
-            SavedDate = DateTime.UtcNow
+            SavedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -192,7 +193,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_GetAllCompaniesAsync_ReturnsAllCompanies()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Companies.Add(new CompanyEntity { Name = "Company1" });
         context.Companies.Add(new CompanyEntity { Name = "Company2" });
         await context.SaveChangesAsync();
@@ -206,7 +207,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_AddCompanyAsync_AddsCompany()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var company = new CompanyEntity { Name = "NewCompany" };
 
         var repository = new CompanyRepository(context);
@@ -218,7 +219,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_AddCompaniesAsync_AddsCompanies()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var companies = new List<CompanyEntity>
         {
             new CompanyEntity { Name = "Company1" },
@@ -234,7 +235,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_UpdateCompaniesAsync_UpdatesCompanies()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var company1 = new CompanyEntity { Name = "Company1", Logo = "OldLogo1" };
         var company2 = new CompanyEntity { Name = "Company2", Logo = "OldLogo2" };
         context.Companies.AddRange(company1, company2);
@@ -254,7 +255,7 @@ public class RepositoryTests
     [Fact]
     public async Task CompanyRepository_UpdateCompanyAsync_UpdatesCompany()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var company = new CompanyEntity { Name = "Company", Logo = "OldLogo" };
         context.Companies.Add(company);
         await context.SaveChangesAsync();
@@ -270,7 +271,7 @@ public class RepositoryTests
     [Fact]
     public async Task ContractTypeRepository_GetContractTypeByNameAsync_ReturnsContractType()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.ContractTypes.Add(new ContractTypeEntity { Name = "TestContractType" });
         await context.SaveChangesAsync();
 
@@ -284,7 +285,7 @@ public class RepositoryTests
     [Fact]
     public async Task ContractTypeRepository_GetAllContractTypesAsync_ReturnsAllContractTypes()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.ContractTypes.Add(new ContractTypeEntity { Name = "ContractType1" });
         context.ContractTypes.Add(new ContractTypeEntity { Name = "ContractType2" });
         await context.SaveChangesAsync();
@@ -298,7 +299,7 @@ public class RepositoryTests
     [Fact]
     public async Task ContractTypeRepository_AddContractTypeAsync_AddsContractType()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var contractType = new ContractTypeEntity { Name = "NewContractType" };
 
         var repository = new ContractTypeRepository(context);
@@ -310,7 +311,7 @@ public class RepositoryTests
     [Fact]
     public async Task ContractTypeRepository_AddContractTypesAsync_AddsContractTypes()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var contractTypes = new List<ContractTypeEntity>
         {
             new ContractTypeEntity { Name = "ContractType1" },
@@ -327,7 +328,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_GetFilteredExternalSourceVisitsByUserProfileIdAsync_ReturnsFilteredVisits()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -335,7 +336,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
             Company = new CompanyEntity { Name = "TestCompany" },
             ContractType = new ContractTypeEntity { Name = "TestContractType" },
@@ -348,7 +349,7 @@ public class RepositoryTests
         {
             UserProfileId = userProfileId,
             Job = job,
-            ClickDate = DateTime.UtcNow
+            ClickDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -362,7 +363,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_GetExternalSourceVisitClicksWhereEmailNotSentAsync_ReturnsClicks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.ExternalSourceVisitClicks.Add(new ExternalSourceVisitClickEntity
         {
             UserProfileId = Guid.NewGuid(),
@@ -372,9 +373,9 @@ public class RepositoryTests
                 Title = "TestJob",
                 Description = "TestDescription",
                 CompanyName = "TestCompany",
-                DatePosted = DateTime.UtcNow
+                DatePosted = DateTime.Now
             },
-            ClickDate = DateTime.UtcNow,
+            ClickDate = DateTime.Now,
             isFeedbackMailSent = false
         });
         await context.SaveChangesAsync();
@@ -389,7 +390,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_GetExternalSourceVisitClicksByUserProfileIdAsync_ReturnsVisitClicks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         context.ExternalSourceVisitClicks.Add(new ExternalSourceVisitClickEntity
         {
@@ -400,9 +401,9 @@ public class RepositoryTests
                 Title = "TestJob",
                 Description = "TestDescription",
                 CompanyName = "TestCompany",
-                DatePosted = DateTime.UtcNow
+                DatePosted = DateTime.Now
             },
-            ClickDate = DateTime.UtcNow
+            ClickDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -415,7 +416,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_GetExternalSourceVisitClickByUserProfileIdAndJobIdAsync_ReturnsVisitClick()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var jobId = Guid.NewGuid();
         context.ExternalSourceVisitClicks.Add(new ExternalSourceVisitClickEntity
@@ -436,14 +437,14 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_GetExternalSourceVisitClicksForRecommendationsByUserProfileIdAsync_ReturnsVisitClicks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var jobId = Guid.NewGuid();
         context.ExternalSourceVisitClicks.Add(new ExternalSourceVisitClickEntity
         {
             UserProfileId = userProfileId,
             JobId = jobId,
-            ClickDate = DateTime.UtcNow
+            ClickDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -457,7 +458,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_AddExternalSourceVisitClickAsync_AddsVisitClick()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var visitClick = new ExternalSourceVisitClickEntity
         {
             UserProfileId = Guid.NewGuid(),
@@ -473,7 +474,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_UpdateExternalSourceVisitClicksAsync_UpdatesVisitClicks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var visitClick1 = new ExternalSourceVisitClickEntity { UserProfileId = Guid.NewGuid(), JobId = Guid.NewGuid(), isFeedbackMailSent = false };
         var visitClick2 = new ExternalSourceVisitClickEntity { UserProfileId = Guid.NewGuid(), JobId = Guid.NewGuid(), isFeedbackMailSent = false };
         context.ExternalSourceVisitClicks.AddRange(visitClick1, visitClick2);
@@ -492,7 +493,7 @@ public class RepositoryTests
     [Fact]
     public async Task ExternalSourceVisitClickRepository_DeleteExternalSourceVisitClicksAsync_DeletesVisitClicks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var visitClick1 = new ExternalSourceVisitClickEntity { UserProfileId = Guid.NewGuid(), JobId = Guid.NewGuid() };
         var visitClick2 = new ExternalSourceVisitClickEntity { UserProfileId = Guid.NewGuid(), JobId = Guid.NewGuid() };
         context.ExternalSourceVisitClicks.AddRange(visitClick1, visitClick2);
@@ -508,7 +509,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRecommendationMappingRepository_GetJobRecommendationMappingsByUserProfileIdAsync_ReturnsMappings()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -516,12 +517,12 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
         var recommendation = new RecommendationEntity
         {
             UserProfileId = userProfileId,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = DateTime.Now,
             Jobs = new List<JobRecommendationMapping>
         {
             new JobRecommendationMapping
@@ -543,7 +544,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRecommendationMappingRepository_AddJobRecommendationMappingsAsync_AddsMappings()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var mappings = new List<JobRecommendationMapping>
         {
             new JobRecommendationMapping { RecommendationId = Guid.NewGuid(), JobId = Guid.NewGuid() },
@@ -560,7 +561,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetExistingJobIdsByJobIdsAsync_ReturnsJobIds()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var jobId = Guid.NewGuid();
         context.Jobs.Add(new JobEntity
         {
@@ -568,7 +569,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
         });
         await context.SaveChangesAsync();
 
@@ -582,7 +583,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetJobsByJobIdsAsync_ReturnsJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var jobId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -590,7 +591,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             ExtrnalSource = "Adzuna",
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
@@ -612,14 +613,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetJobsForRecommendationAsync_ReturnsJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             ExtrnalSource = "Adzuna",
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
@@ -640,14 +641,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetJobsWithoutDetailsForRecommendationsAsync_ReturnsJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             ExtrnalSource = "Adzuna",
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
@@ -668,7 +669,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetJobByJobIdAsync_ReturnsJob()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var jobId = Guid.NewGuid();
         context.Jobs.Add(new JobEntity
         {
@@ -676,7 +677,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -690,7 +691,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetJobDescriptionByJobIdAsync_ReturnsDescription()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var jobId = Guid.NewGuid();
         context.Jobs.Add(new JobEntity
         {
@@ -698,7 +699,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -711,14 +712,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetFilteredJobsAsync_ReturnsFilteredJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
         context.Jobs.Add(job);
         await context.SaveChangesAsync();
@@ -733,14 +734,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetAllJobsAsync_ReturnsAllJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
             Company = new CompanyEntity { Name = "TestCompany" },
@@ -760,14 +761,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_GetAllJobsForDeactivation_ReturnsJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Jobs.Add(new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow.AddDays(-61),
+            DatePosted = DateTime.Now.AddDays(-61),
             isActive = true
         });
         await context.SaveChangesAsync();
@@ -781,14 +782,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_AddJobAsync_AddsJob()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
 
         var repository = new JobRepository(context);
@@ -800,11 +801,11 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_AddJobsAsync_AddsJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var jobs = new List<JobEntity>
     {
-        new JobEntity { Id = Guid.NewGuid(), Title = "TestJob1", Description = "TestDescription1", CompanyName = "TestCompany1", DatePosted = DateTime.UtcNow },
-        new JobEntity { Id = Guid.NewGuid(), Title = "TestJob2", Description = "TestDescription2", CompanyName = "TestCompany2", DatePosted = DateTime.UtcNow }
+        new JobEntity { Id = Guid.NewGuid(), Title = "TestJob1", Description = "TestDescription1", CompanyName = "TestCompany1", DatePosted = DateTime.Now },
+        new JobEntity { Id = Guid.NewGuid(), Title = "TestJob2", Description = "TestDescription2", CompanyName = "TestCompany2", DatePosted = DateTime.Now }
     };
 
         var repository = new JobRepository(context);
@@ -816,7 +817,7 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_UpdateAPIJobsAsync_UpdatesJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var jobId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -824,7 +825,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
         context.Jobs.Add(job);
         await context.SaveChangesAsync();
@@ -835,7 +836,7 @@ public class RepositoryTests
             Title = "UpdatedJob",
             Description = "UpdatedDescription",
             CompanyName = "UpdatedCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
 
         context.Entry(job).State = EntityState.Detached;
@@ -850,14 +851,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_UpdateJobsAsync_UpdatesJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
         context.Jobs.Add(job);
         await context.SaveChangesAsync();
@@ -873,14 +874,14 @@ public class RepositoryTests
     [Fact]
     public async Task JobRepository_DeleteJobAsync_DeletesJob()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var job = new JobEntity
         {
             Id = Guid.NewGuid(),
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow
+            DatePosted = DateTime.Now
         };
         context.Jobs.Add(job);
         await context.SaveChangesAsync();
@@ -895,7 +896,7 @@ public class RepositoryTests
     [Fact]
     public async Task LocationRepository_AddLocationsAsync_AddsLocations()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var locations = new List<LocationEntity>
         {
             new LocationEntity { Id = Guid.NewGuid(), City = "City1" },
@@ -911,7 +912,7 @@ public class RepositoryTests
     [Fact]
     public async Task LocationRepository_AddLocationAsync_AddsLocation()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var location = new LocationEntity { Id = Guid.NewGuid(), City = "NewCity" };
 
         var repository = new LocationRepository(context);
@@ -924,12 +925,12 @@ public class RepositoryTests
     [Fact]
     public async Task RecommendationRepository_GetRecommendationsByUserProfileIdAsync_ReturnsRecommendations()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         context.Recommendations.Add(new RecommendationEntity
         {
             UserProfileId = userProfileId,
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -943,7 +944,7 @@ public class RepositoryTests
     [Fact]
     public async Task RecommendationRepository_GetNewRecommendedJobsByUserProfileIdAsync_ReturnsJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -951,7 +952,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             ExtrnalSource = "Adzuna",
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
@@ -964,7 +965,7 @@ public class RepositoryTests
         {
             Id = Guid.NewGuid(),
             UserProfileId = userProfileId,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = DateTime.Now,
             Jobs = new List<JobRecommendationMapping>
         {
             new JobRecommendationMapping
@@ -987,13 +988,13 @@ public class RepositoryTests
     [Fact]
     public async Task RecommendationRepository_GetRecommendationAfterDateByUserProfileIdAsync_ReturnsRecommendation()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
-        var date = DateTime.UtcNow.AddDays(-1);
+        var date = DateTime.Now.AddDays(-1);
         context.Recommendations.Add(new RecommendationEntity
         {
             UserProfileId = userProfileId,
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -1007,12 +1008,12 @@ public class RepositoryTests
     [Fact]
     public async Task RecommendationRepository_AddRecommendationAsync_AddsRecommendation()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var recommendation = new RecommendationEntity
         {
             Id = Guid.NewGuid(),
             UserProfileId = Guid.NewGuid(),
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = DateTime.Now
         };
 
         var repository = new RecommendationRepository(context);
@@ -1024,12 +1025,12 @@ public class RepositoryTests
     [Fact]
     public async Task RecommendationRepository_DeleteRecommendationAsync_DeletesRecommendation()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var recommendation = new RecommendationEntity
         {
             Id = Guid.NewGuid(),
             UserProfileId = Guid.NewGuid(),
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = DateTime.Now
         };
         context.Recommendations.Add(recommendation);
         await context.SaveChangesAsync();
@@ -1043,11 +1044,11 @@ public class RepositoryTests
     [Fact]
     public async Task RecommendationRepository_DeleteRecommendationsAsync_DeletesRecommendations()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var recommendations = new List<RecommendationEntity>
         {
-            new RecommendationEntity { Id = Guid.NewGuid(), UserProfileId = Guid.NewGuid(), CreatedDate = DateTime.UtcNow },
-            new RecommendationEntity { Id = Guid.NewGuid(), UserProfileId = Guid.NewGuid(), CreatedDate = DateTime.UtcNow }
+            new RecommendationEntity { Id = Guid.NewGuid(), UserProfileId = Guid.NewGuid(), CreatedDate = DateTime.Now },
+            new RecommendationEntity { Id = Guid.NewGuid(), UserProfileId = Guid.NewGuid(), CreatedDate = DateTime.Now }
         };
         context.Recommendations.AddRange(recommendations);
         await context.SaveChangesAsync();
@@ -1062,7 +1063,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_GetFilteredSavedJobsByUserProfileIdAsync_ReturnsFilteredJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -1070,7 +1071,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             ExtrnalSource = "Adzuna",
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
@@ -1084,7 +1085,7 @@ public class RepositoryTests
         {
             UserProfileId = userProfileId,
             Job = job,
-            SavedDate = DateTime.UtcNow
+            SavedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -1098,7 +1099,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_GetSavedJobsByUserProfileIdAndJobIdAsync_ReturnsSavedJob()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var jobId = Guid.NewGuid();
         context.SavedJobs.Add(new SavedJobEntity
@@ -1119,7 +1120,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_GetSavedJobsByUserProfileIdAsync_ReturnsSavedJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var jobId = Guid.NewGuid();
         context.SavedJobs.Add(new SavedJobEntity
@@ -1132,9 +1133,9 @@ public class RepositoryTests
                 Title = "TestJob",
                 Description = "TestDescription",
                 CompanyName = "TestCompany",
-                DatePosted = DateTime.UtcNow
+                DatePosted = DateTime.Now
             },
-            SavedDate = DateTime.UtcNow
+            SavedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -1147,7 +1148,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_GetSavedJobsForRecommendationsByUserProfileIdAsync_ReturnsSavedJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var jobId = Guid.NewGuid();
         context.SavedJobs.Add(new SavedJobEntity
@@ -1160,9 +1161,9 @@ public class RepositoryTests
                 Title = "TestJob",
                 Description = "TestDescription",
                 CompanyName = "TestCompany",
-                DatePosted = DateTime.UtcNow
+                DatePosted = DateTime.Now
             },
-            SavedDate = DateTime.UtcNow
+            SavedDate = DateTime.Now
         });
         await context.SaveChangesAsync();
 
@@ -1175,7 +1176,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_AddSavedJobAsync_AddsSavedJob()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var savedJob = new SavedJobEntity
         {
             UserProfileId = Guid.NewGuid(),
@@ -1191,7 +1192,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_DeleteSavedJobAsync_DeletesSavedJob()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var savedJob = new SavedJobEntity
         {
             UserProfileId = Guid.NewGuid(),
@@ -1209,7 +1210,7 @@ public class RepositoryTests
     [Fact]
     public async Task SavedJobRepository_DeleteSavedJobsAsync_DeletesSavedJobs()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var savedJobs = new List<SavedJobEntity>
         {
             new SavedJobEntity { UserProfileId = Guid.NewGuid(), JobId = Guid.NewGuid() },
@@ -1228,7 +1229,7 @@ public class RepositoryTests
     [Fact]
     public async Task TagRepository_AddTagsAsync_AddsTags()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var tags = new List<TagEntity>
         {
             new TagEntity { Name = "Tag1" },
@@ -1244,7 +1245,7 @@ public class RepositoryTests
     [Fact]
     public async Task TagRepository_GetTagsByNamesAsync_ReturnsTags()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Tags.Add(new TagEntity { Name = "TestTag" });
         await context.SaveChangesAsync();
 
@@ -1258,7 +1259,7 @@ public class RepositoryTests
     [Fact]
     public async Task TagRepository_GetAllTagsAsync_ReturnsAllTags()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         context.Tags.Add(new TagEntity { Name = "Tag1" });
         context.Tags.Add(new TagEntity { Name = "Tag2" });
         await context.SaveChangesAsync();
@@ -1273,7 +1274,7 @@ public class RepositoryTests
     [Fact]
     public async Task UserFeedbackRepository_GetUserFeedbackByTokenAsync_ReturnsUserFeedback()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -1282,7 +1283,7 @@ public class RepositoryTests
             Description = "TestDescription",
             CompanyName = "TestCompany",
             isActive = true,
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
             Company = new CompanyEntity { Name = "TestCompany" },
             ContractType = new ContractTypeEntity { Name = "TestContractType" },
@@ -1308,7 +1309,7 @@ public class RepositoryTests
     [Fact]
     public async Task UserFeedbackRepository_GetFilteredFeedbacksAsync_ReturnsFilteredFeedbacks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         var job = new JobEntity
         {
@@ -1316,7 +1317,7 @@ public class RepositoryTests
             Title = "TestJob",
             Description = "TestDescription",
             CompanyName = "TestCompany",
-            DatePosted = DateTime.UtcNow,
+            DatePosted = DateTime.Now,
             isActive = true,
             Categories = new List<JobCategoryMapping> { new JobCategoryMapping { CategoryName = "TestCategory", Category = new CategoryEntity { Name = "TestCategory" } } },
             Company = new CompanyEntity { Name = "TestCompany" },
@@ -1343,7 +1344,7 @@ public class RepositoryTests
     [Fact]
     public async Task UserFeedbackRepository_GetUserFeedbacksByUserProfileIdAsync_ReturnsUserFeedbacks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var userProfileId = Guid.NewGuid();
         context.UserFeedbacks.Add(new UserFeedbackEntity
         {
@@ -1363,7 +1364,7 @@ public class RepositoryTests
     [Fact]
     public async Task UserFeedbackRepository_AddUserFeedbacksAsync_AddsUserFeedbacks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var feedbacks = new List<UserFeedbackEntity>
     {
         new UserFeedbackEntity
@@ -1384,7 +1385,7 @@ public class RepositoryTests
     [Fact]
     public async Task UserFeedbackRepository_DeleteUserFeedbacksAsync_DeletesUserFeedbacks()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var feedbacks = new List<UserFeedbackEntity>
     {
         new UserFeedbackEntity
@@ -1407,7 +1408,7 @@ public class RepositoryTests
     [Fact]
     public async Task UserFeedbackRepository_UpdateUserFeedbackAsync_UpdatesUserFeedback()
     {
-        using var context = GetInMemoryDataContext();
+        using var context = new DataContext(_contextOptions);
         var feedback = new UserFeedbackEntity
         {
             UserProfileId = Guid.NewGuid(),

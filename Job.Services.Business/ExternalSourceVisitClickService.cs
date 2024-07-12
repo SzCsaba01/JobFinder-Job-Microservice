@@ -33,7 +33,7 @@ public class ExternalSourceVisitClickService : IExternalSourceVisitClickService
         {
             UserProfileId = userProfileId,
             JobId = jobId,
-            ClickDate = DateTime.UtcNow,
+            ClickDate = DateTime.Now,
             isFeedbackMailSent = false
         };
 
